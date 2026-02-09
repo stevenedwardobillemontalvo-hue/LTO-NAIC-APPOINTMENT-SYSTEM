@@ -27,7 +27,7 @@ export default function ClientDashboard() {
   const [loading, setLoading] = useState(true);
 
   const token = localStorage.getItem("token");
-
+console.log(selected)
   useEffect(() => {
     if (!token) return;
     const fetchData = async () => {
