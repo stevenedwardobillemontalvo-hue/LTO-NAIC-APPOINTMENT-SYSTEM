@@ -9,5 +9,6 @@
     "types": ["react", "react-dom"],
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "noUnusedLocals": false
   }
 }
