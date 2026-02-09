@@ -23,7 +23,7 @@ export default function ClientDashboard() {
   });
 
   const [todaysAppointments, setTodaysAppointments] = useState<Appointment[]>([]);
-  const [selected, setSelected] = useState<Appointment | null>(null);
+  const [_selected, setSelected] = useState<Appointment | null>(null);
   const [loading, setLoading] = useState(true);
 
   const token = localStorage.getItem("token");

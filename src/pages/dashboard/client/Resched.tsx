@@ -15,7 +15,7 @@ interface Props {
 export default function RescheduleCalendar({ appointmentId }: Props) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
-  const [blockedDates, setBlockedDates] = useState<string[]>([]);
+  const [_blockedDates, setBlockedDates] = useState<string[]>([]);
   const [blockedTimes, setBlockedTimes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 

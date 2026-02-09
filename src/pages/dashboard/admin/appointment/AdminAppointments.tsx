@@ -49,14 +49,6 @@ export default function AdminApplicants() {
     setSelectedStatuses((prev) => prev.filter((s) => s !== status));
   };
 
-  const toggleStatus = (status: string) => {
-    setSelectedStatuses((prev) =>
-      prev.includes(status)
-        ? prev.filter((s) => s !== status)
-        : [...prev, status]
-    );
-  };
-
 const handleFilter = () => {
   setAppliedFilters(true); 
 };

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import DropdownMenu from "../../../../components/dropdownMenu";
 import {
-  viewAppointment,
   statusAppointment,
   AppointmentNote
 } from "../../../../services/admin/appointment";
@@ -31,25 +30,14 @@ interface Props {
   onReject: (note: string) => void;
 }
 
-interface Appointment {
-  id: string;
-  name: string;
-  appointmentDate: string;
-  appointmentTime: string;
-  status: string;
-  note?: string;
-}
-
 export default function ViewAppointment({
   appointment,
   onApprove,
-  onReject,
 }: Props) {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [zoomImage, setZoomImage] = useState<string | null>(null);
   const [openMenu, setOpenMenu] = useState(false);
   const [note, setNote] = useState(appointment.note || "");
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -101,15 +89,6 @@ export default function ViewAppointment({
   };
 
   const formatAppointmentTime = (time: string) => {
-  const [startStr, endStr] = time.split("-");
-  let start = Number(startStr);
-  let end = Number(endStr);
-
-  const formatHour = (hour: number) => {
-    if (hour === 12) return "12:00PM";
-    if (hour >= 1 && hour < 12) return `${hour}:00${hour >= 8 ? "AM" : "PM"}`; // fix later
-    return `${hour}:00AM`;
-  };
 
   const slots: Record<string, string> = {
     "8-9": "8:00AM-9:00AM",

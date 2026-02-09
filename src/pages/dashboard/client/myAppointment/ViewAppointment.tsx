@@ -85,16 +85,6 @@ export default function ViewAppointment({ appointment, onUpdate }: Props) {
   };
 
   const formatAppointmentTime = (time: string) => {
-  const [startStr, endStr] = time.split("-");
-  let start = Number(startStr);
-  let end = Number(endStr);
-
-  const formatHour = (hour: number) => {
-    if (hour === 12) return "12:00PM";
-    if (hour >= 1 && hour < 12) return `${hour}:00${hour >= 8 ? "AM" : "PM"}`; // fix later
-    return `${hour}:00AM`;
-  };
-
   const slots: Record<string, string> = {
     "8-9": "8:00AM-9:00AM",
     "9-10": "9:00AM-10:00AM",
