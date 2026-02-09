@@ -1,0 +1,125 @@
+import { forwardRef } from "react";
+import Logo from "../../../../components/header";
+import QRCode from "react-qr-code"
+
+interface PrintProps {
+  appointment: {
+    id: string;
+    name: string;
+    appointmentDate: string;
+    appointmentTime: string;
+    status: string;
+    typeOfTransaction?: string;
+    requirement?: Record<string, string>;
+    createdAt?: string;
+    client?: {
+      firstName?: string;
+      middleName?: string;
+      lastName?: string;
+      birthdate?: string;
+      email?: string;
+      contactNumber?: string;
+    };
+    note?: string;
+  };
+}
+
+const Print = forwardRef<HTMLDivElement, PrintProps>(({ appointment }, ref) => {
+  const requirement = appointment.requirement || {};
+  const typeOfTransaction = appointment.typeOfTransaction || "N/A";
+  const client = appointment.client || {};
+  const fullName = `${client.firstName || ""} ${client.middleName || ""} ${client.lastName || ""}`.replace(/\s+/g, " ").trim();
+
+  const confirmationURL = `http://localhost:5173/confirmation/${appointment.id}`;
+
+  const formatAppointmentTime = (time: string) => {
+  const [startStr, endStr] = time.split("-");
+  let start = Number(startStr);
+  let end = Number(endStr);
+
+  const formatHour = (hour: number) => {
+    if (hour === 12) return "12:00PM";
+    if (hour >= 1 && hour < 12) return `${hour}:00${hour >= 8 ? "AM" : "PM"}`; // fix later
+    return `${hour}:00AM`;
+  };
+
+  const slots: Record<string, string> = {
+    "8-9": "8:00AM-9:00AM",
+    "9-10": "9:00AM-10:00AM",
+    "10-11": "10:00AM-11:00AM",
+    "11-12": "11:00AM-12:00PM",
+    "12-1": "12:00PM-1:00PM",
+    "1-2": "1:00PM-2:00PM",
+    "2-3": "2:00PM-3:00PM",
+    "3-4": "3:00PM-4:00PM",
+  };
+
+  return slots[time] || time;
+};
+
+  return (
+    <div ref={ref} className="p-10 bg-white text-gray-900 space-y-6">
+      <Logo />
+
+      <div className="mt-8 border-t pt-6">
+        <h2 className="text-xl font-bold text-center uppercase mb-6">
+          Appointment Details
+        </h2>
+
+        <div className="space-y-1">
+          <p><strong>ID:</strong> {appointment.id}</p>
+          <p>
+            <strong>Appointment Date & Time:</strong> {appointment.appointmentDate} — {formatAppointmentTime(appointment.appointmentTime)}
+          </p>
+          {appointment.createdAt && (
+            <p>
+              <strong>Request Date:</strong> {new Date(appointment.createdAt).toISOString().split("T")[0]}
+            </p>
+          )}
+          <p><strong>Status:</strong> {appointment.status}</p>
+        </div>
+        <hr />
+
+        <div className="space-y-1">
+          <p><strong>Name:</strong> {fullName}</p>
+          {client.birthdate && <p><strong>Birthdate:</strong> {client.birthdate}</p>}
+          {client.email && <p><strong>Email Address:</strong> {client.email}</p>}
+          {client.contactNumber && <p><strong>Contact Number:</strong> {client.contactNumber}</p>}
+          <p><strong>Type of Application:</strong> {typeOfTransaction}</p>
+        </div>
+        <hr />
+
+        <div>
+          <strong>Uploaded Requirements:</strong>
+          {Object.keys(requirement).length === 0 ? (
+            <p>No documents uploaded.</p>
+          ) : (
+            <ul className="list-disc ml-6">
+              {Object.entries(requirement).map(([key, value]) => (
+                <li key={key}>
+                  {key}:{" "}
+                  <a href={value} target="_blank" rel="noreferrer">
+                    {value}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <hr />
+
+        <div>
+          <p>{appointment.note || "Kindly bring your hard copy requirement."}</p>
+          
+        </div>
+        <hr />
+        <div className="space-y-1">
+          <p className="mb-2 font-semibold">Scan this QR code to view your confirmation online:</p>
+          <QRCode value={confirmationURL} size={150} />
+        </div>
+      </div>
+    </div>
+  );
+});
+
+export default Print;
