@@ -29,7 +29,6 @@ export default function AdminPage() {
     ltmsNumber: "",
   });
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const token = localStorage.getItem("token");
@@ -89,7 +88,6 @@ export default function AdminPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.password !== confirmPassword) {
-      setMessage("Passwords do not match");
       enqueueSnackbar("Passwords do not match", { variant: "error" });
       return;
     }
@@ -101,7 +99,6 @@ export default function AdminPage() {
       setShowForm(false);
       fetchAdmins(); 
     } catch (err: any) {
-      setMessage(err.message || "Failed to add admin");
       enqueueSnackbar(err.message || "Failed to add admin", { variant: "error" });
     } finally {
       setSubmitting(false);

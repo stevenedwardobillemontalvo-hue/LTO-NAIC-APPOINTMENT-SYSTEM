@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import {
   getAdminAppointments,
-  viewAppointment,
   statusAppointment,
   AppointmentNote
 } from "../../../../services/admin/appointment";
@@ -23,7 +22,7 @@ export default function AdminApplicants() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<any | null>(null);
-  const [loadingView, setLoadingView] = useState(false);
+  const [loadingView] = useState(false);
   const navigate = useNavigate();
   const { id } = useParams();
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
@@ -224,15 +223,6 @@ const handleReject = async (id: string, note?: string) => {
 };
 
 const formatAppointmentTime = (time: string) => {
-  const [startStr, endStr] = time.split("-");
-  let start = Number(startStr);
-  let end = Number(endStr);
-
-  const formatHour = (hour: number) => {
-    if (hour === 12) return "12:00PM";
-    if (hour >= 1 && hour < 12) return `${hour}:00${hour >= 8 ? "AM" : "PM"}`; // fix later
-    return `${hour}:00AM`;
-  };
 
   const slots: Record<string, string> = {
     "8-9": "8:00AM-9:00AM",

@@ -16,7 +16,6 @@ export default function RegisterForm() {
   });
 
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
@@ -172,16 +171,6 @@ export default function RegisterForm() {
         >
           {loading ? "Registering..." : "Register"}
         </button>
-
-        {message && (
-          <p
-            className={`text-sm mt-2 text-center ${
-              message.toLowerCase().includes("success") ? "text-green-600" : "text-red-500"
-            }`}
-          >
-            {message}
-          </p>
-        )}
       </form>
     </div>
   );

@@ -15,7 +15,6 @@ import Admin from "./pages/dashboard/admin/Admin";
 
 import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
-import ClientDashboard from "./pages/dashboard/client/ClientDashboard";
 import Appointment from "./pages/dashboard/client/Appointment/Appointment";
 import MyAppointments from "./pages/dashboard/client/myAppointment/myAppointments";
 
