@@ -17,7 +17,7 @@ export function GuestRoute({ children }: { children: JSX.Element }) {
   const token = localStorage.getItem("token");
 
   if (token && !isTokenExpired(token)) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/dashboard/:id" replace />;
   }
 
   if (token && isTokenExpired(token)) logout();
