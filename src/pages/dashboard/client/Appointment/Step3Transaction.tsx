@@ -117,14 +117,14 @@ export default function Step3Transaction({ data, updateForm, onBack }: Props) {
           <p className="text-sm text-gray-500 mb-3">
             Please upload your required documents as <strong>.jpg</strong> or <strong>.png</strong> images.
           </p>
-          {transactionRequirements[selectedType].map((req) => (
-            <div key={req} className="mb-2">
-              <label className="block">{req}</label>
+          {transactionRequirements[selectedType].map(({ key, label }) => (
+            <div key={key} className="mb-2">
+              <label className="block">{label}</label>
               <input
                 type="file"
                 accept="image/png, image/jpeg"
                 onChange={(e) => {
-                  if (e.target.files?.[0]) handleFileChange(req, e.target.files[0]);
+                  if (e.target.files?.[0]) handleFileChange(key, e.target.files[0]);
                 }}
                 className="border p-2 w-full rounded"
               />
