@@ -56,6 +56,7 @@ export default function Step3Transaction({ data, updateForm, onBack }: Props) {
         method: "POST",
         body: formData,
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         credentials: "include",
