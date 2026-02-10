@@ -34,7 +34,7 @@ export default function LoginPanel() {
 
     try {
       const { data } = await axios.post(
-        "http://localhost:6001/auth/login",
+        "https://lto-naic-appointment-server.onrender.com/auth/login",
         form,
         { withCredentials: true }
       );
@@ -71,7 +71,7 @@ export default function LoginPanel() {
     // setResetMessage("");
     try {
       const { data } = await axios.post(
-        "http://localhost:6001/auth/forgot-password",
+        "https://lto-naic-appointment-server.onrender.com/auth/forgot-password",
         { email: resetEmail }
       );
       enqueueSnackbar(data.message || AUTH_MESSAGES.FORGOT_PASSWORD.SUCCESS, {

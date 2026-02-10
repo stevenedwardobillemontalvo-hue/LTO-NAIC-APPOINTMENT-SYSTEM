@@ -1,5 +1,5 @@
 import { io } from "socket.io-client";
 
-export const socket = io("http://localhost:6001", {
+export const socket = io("https://lto-naic-appointment-server.onrender.com", {
   transports: ["websocket"],
 });

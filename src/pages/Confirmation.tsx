@@ -14,7 +14,7 @@ const Confirmation = () => {
       return;
     }
 
-    window.location.href = `http://localhost:6001/auth/confirmation?token=${token}`;
+    window.location.href = `https://lto-naic-appointment-server.onrender.com/auth/confirmation?token=${token}`;
   }, [searchParams]);
 
   return (

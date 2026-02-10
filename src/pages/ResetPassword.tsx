@@ -29,7 +29,7 @@ export default function ResetPassword() {
     setMessage("");
 
     try {
-      const { data } = await axios.post("http://localhost:6001/auth/reset-password", {
+      const { data } = await axios.post("https://lto-naic-appointment-server.onrender.com/auth/reset-password", {
         token,
         newPassword,
       });
