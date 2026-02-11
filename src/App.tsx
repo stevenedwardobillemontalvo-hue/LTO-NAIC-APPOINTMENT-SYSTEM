@@ -46,9 +46,8 @@ export default function App() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/confirmation" element={<Confirmation />} />
-      
+
       <Route path="/dashboard/:id" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}>
-        <Route index element={<AdminDashboard />} />  {/* <-- default route */}
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="appointments" element={<AdminAppointments />} />
         <Route path="appointments/:appointmentId" element={<ViewAppointmentWrapper />} />
