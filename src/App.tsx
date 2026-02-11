@@ -50,7 +50,7 @@ export default function App() {
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/confirmation" element={<Confirmation />} />
       <Route path="/terms" element={<Terms/>} />
-      <Route path="/terms" element={<PrivacyPolicy/>} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy/>} />
 
       <Route path="/dashboard/:id" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}>
         <Route path="dashboard" element={<AdminDashboard />} />
