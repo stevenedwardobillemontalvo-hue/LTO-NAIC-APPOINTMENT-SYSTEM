@@ -131,11 +131,6 @@ export default function Step1Calendar({ updateForm, onNext }: Props) {
     }
   };
 
-  const isWeekend = (date: Date) => {
-    const day = date.getDay();
-    return day === 0 || day === 6; 
-  };
-
 
 const tileDisabled = ({ date, view }: { date: Date; view: string }) => {
   if (view !== "month") return false;
@@ -158,6 +153,12 @@ const tileDisabled = ({ date, view }: { date: Date; view: string }) => {
   if (slots === undefined) {
     slots = isWeekend ? 0 : 6;
   }
+  if (blockedDates.includes(dateStr)) return true;
+  if (availabilityRange) {
+  if (dateStr < availabilityRange.start || dateStr > availabilityRange.end) {
+    return true;
+  }
+}
 
   return slots <= 0;
 };
