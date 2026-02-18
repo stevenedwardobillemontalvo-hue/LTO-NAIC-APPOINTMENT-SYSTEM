@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // const API_BASE = import.meta.env.VITE_API_URL || "https://lto-naic-appointment-server.onrender.com";
-const API_BASE = import.meta.env.VITE_BACKEND_URL || "https://lto-naic-appointment-server.onrender.com";
+const API_BASE = "https://lto-naic-appointment-server.onrender.com";
 
 export const getClientAppointments = async (token: string) => {
   const url = `${API_BASE}/appointment/client`;
