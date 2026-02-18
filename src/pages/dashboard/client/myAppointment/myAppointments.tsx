@@ -10,6 +10,8 @@ import DropdownMenu from "../../../../components/dropdownMenu";
 import { useReactToPrint } from "react-to-print";
 import RescheduleCalendar from "../Resched";
 import { useSnackbar } from "notistack";
+import BackButton from "./BackButton";
+import ConfirmModal from "./ConfirmModal";
 
 interface Appointment {
   id: string;
@@ -33,6 +35,22 @@ export default function AppointmentsPage() {
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [rescheduleMode, setRescheduleMode] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
+  const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
+
+  const statusColors: Record<string, string> = {
+  approved: "text-green-600",
+  pending: "text-blue-500",
+  rejected: "text-red-600",
+  cancelled: "text-orange-500",
+};
+
+const statusPriority: Record<string, number> = {
+  approved: 1,
+  pending: 2,
+  rejected: 3,
+  cancelled: 4,
+};
+
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -40,6 +58,17 @@ export default function AppointmentsPage() {
     onAfterPrint: () => setPrintAppointment(null),
   });
 
+
+const canReschedule = (appointment: Appointment) => {
+  if (appointment.status !== "approved") return false;
+  if (!appointment.createdAt) return false;
+
+  const createdTime = new Date(appointment.createdAt).getTime();
+  const now = Date.now();
+  const twentyFourHours = 24 * 60 * 60 * 1000;
+
+  return now - createdTime <= twentyFourHours;
+};
   // const onPrintClick = (appointment: Appointment) => setPrintAppointment(appointment);
 
   useEffect(() => {
@@ -56,10 +85,22 @@ export default function AppointmentsPage() {
 
       try {
         const data = await getClientAppointments(token);
-        const sorted = data.sort(
-          (a: Appointment, b: Appointment) =>
-            new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime()
+        
+        // const sorted = data.sort(
+        //   (a: Appointment, b: Appointment) =>
+        //     new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime()
+        // );
+        const sorted = data.sort((a: Appointment, b: Appointment) => {
+        const aPriority = statusPriority[a.status] ?? 99;
+        const bPriority = statusPriority[b.status] ?? 99;
+
+        if (aPriority !== bPriority) return aPriority - bPriority;
+
+        return (
+          new Date(a.appointmentDate).getTime() -
+          new Date(b.appointmentDate).getTime()
         );
+      });
         setAppointments(sorted);
       } catch (err) {
         console.error(err);
@@ -75,20 +116,52 @@ export default function AppointmentsPage() {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    const confirmCancel = window.confirm("Are you sure you want to cancel this appointment?");
-    if (!confirmCancel) return;
-
     try {
-      await cancelAppointment(id, token);
-      setAppointments((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, status: "cancelled" } : a))
+    await cancelAppointment(id, token);
+    // setAppointments((prev) =>
+    //   prev.map((a) => (a.id === id ? { ...a, status: "cancelled" } : a))
+    // );
+    setAppointments((prev) => {
+    const updated = prev.map((a) =>
+      a.id === id ? { ...a, status: "cancelled" } : a
+    );
+
+    return updated.sort((a, b) => {
+      const aPriority = statusPriority[a.status] ?? 99;
+      const bPriority = statusPriority[b.status] ?? 99;
+
+      if (aPriority !== bPriority) return aPriority - bPriority;
+
+      return (
+        new Date(a.appointmentDate).getTime() -
+        new Date(b.appointmentDate).getTime()
       );
-      enqueueSnackbar("Appointment cancelled successfully!", { variant: "success" });
-    } catch (err) {
-      console.error(err);
-      enqueueSnackbar("Failed to cancel appointment. Please try again.", { variant: "error" });
-    }
-  };
+    });
+  });
+
+    enqueueSnackbar("Appointment cancelled successfully!", { variant: "success" });
+  } catch (err) {
+    console.error(err);
+    enqueueSnackbar("Failed to cancel appointment. Please try again.", { variant: "error" });
+  } finally {
+    setConfirmCancelId(null);
+  }
+};
+
+  //   const confirmCancel = window.confirm("Are you sure you want to cancel this appointment?");
+  //   if (!confirmCancel) return;
+
+  //   try {
+  //     await cancelAppointment(id, token);
+  //     setAppointments((prev) =>
+  //       prev.map((a) => (a.id === id ? { ...a, status: "cancelled" } : a))
+  //     );
+  //     enqueueSnackbar("Appointment cancelled successfully!", { variant: "success" });
+  //   } catch (err) {
+  //     console.error(err);
+  //     enqueueSnackbar("Failed to cancel appointment. Please try again.", { variant: "error" });
+  //   }
+  // };
 
   const handleView = async (id: string) => {
     setLoadingView(true);
@@ -99,10 +172,20 @@ export default function AppointmentsPage() {
       enqueueSnackbar("Failed to fetch appointment details.", { variant: "error" });
     } finally {
       setLoadingView(false);
+      setOpenDropdownId(null); 
     }
   };
 
   const formatAppointmentTime = (time: string) => {
+  // const [startStr, endStr] = time.split("-");
+  // let start = Number(startStr);
+  // let end = Number(endStr);
+
+  // const formatHour = (hour: number) => {
+  //   if (hour === 12) return "12:00PM";
+  //   if (hour >= 1 && hour < 12) return `${hour}:00${hour >= 8 ? "AM" : "PM"}`; // fix later
+  //   return `${hour}:00AM`;
+  // };
 
   const slots: Record<string, string> = {
     "8-9": "8:00AM-9:00AM",
@@ -115,6 +198,17 @@ export default function AppointmentsPage() {
     "3-4": "3:00PM-4:00PM",
   };
 
+  // const wrapperRef = useRef<HTMLDivElement>(null);
+  // useEffect(() => {
+  //   const handleClickOutside = (event: MouseEvent) => {
+  //     if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+  //       setOpenDropdownId(null);
+  //     }
+  //   };
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => document.removeEventListener("mousedown", handleClickOutside);
+  // }, []);
+
   return slots[time] || time;
 };
 
@@ -123,28 +217,53 @@ export default function AppointmentsPage() {
   return (
     <div className="w-full max-w-4xl mx-auto mt-4">
       <h1 className="text-2xl font-bold mb-6">My Appointments</h1>
+      {selected && (
+        <div className="mb-4">
+          <BackButton onBack={() => setSelected(null)} />
+        </div>
+      )}
 
-      {/* Reschedule Mode */}
       {rescheduleMode && selected ? (
         <RescheduleCalendar
           appointmentId={selected.id}
+          appointmentDate={selected.appointmentDate}
           onSave={async (newDate, newTime) => {
             try {
               await rescheduleAppointment(selected.id, newDate, newTime);
-              alert("Appointment rescheduled successfully!");
-              setAppointments((prev) =>
-                prev.map((a) =>
-                  a.id === selected.id
-                    ? { ...a, appointmentDate: newDate, appointmentTime: newTime, status: "pending" }
-                    : a
-                )
+               enqueueSnackbar("Appointment rescheduled successfully!", { variant: "success" });
+              // setAppointments((prev) =>
+              //   prev.map((a) =>
+              //     a.id === selected.id
+              //       ? { ...a, appointmentDate: newDate, appointmentTime: newTime, status: "pending" }
+              //       : a
+              //   )
+              // );
+              setAppointments((prev) => {
+              const updated = prev.map((a) =>
+                a.id === selected.id
+                  ? { ...a, appointmentDate: newDate, appointmentTime: newTime, status: "pending" }
+                  : a
               );
+
+              return updated.sort((a, b) => {
+                const aPriority = statusPriority[a.status] ?? 99;
+                const bPriority = statusPriority[b.status] ?? 99;
+
+                if (aPriority !== bPriority) return aPriority - bPriority;
+
+                return (
+                  new Date(a.appointmentDate).getTime() -
+                  new Date(b.appointmentDate).getTime()
+                );
+              });
+            });
+
               setSelected((prev) =>
                 prev ? { ...prev, appointmentDate: newDate, appointmentTime: newTime, status: "pending" } : null
               );
             } catch (err) {
               console.error(err);
-              alert("Failed to reschedule appointment.");
+               enqueueSnackbar("Failed to reschedule appointment.", { variant: "error" });
             } finally {
               setRescheduleMode(false);
             }
@@ -159,7 +278,7 @@ export default function AppointmentsPage() {
     className="bg-white shadow-md rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 md:space-x-6"
   >
     <div className="flex-1 space-y-1">
-      <p className="font-semibold">ID: {a.id}</p>
+      <p className="font-semibold">REF. ID: {(a.id || "").slice(0, 8).toUpperCase()}</p>
       <p className="text-sm">
         <span className="font-medium">Appointment Date:</span> {a.appointmentDate} — {formatAppointmentTime(a.appointmentTime)}
       </p>
@@ -168,11 +287,18 @@ export default function AppointmentsPage() {
           <span className="font-medium">Request Date:</span> {new Date(a.createdAt).toLocaleString()}
         </p>
       )}
-      <p className={`text-xs mt-1 font-semibold ${
+      <p className={`text-xs mt-1 font-semibold ${statusColors[a.status] || "text-gray-600"}`}>
+        Status: {a.status === "rejected" ? "DISAPPROVED" : a.status.toUpperCase()}
+      </p>
+
+      {/* <p className={`text-xs mt-1 font-semibold ${statusColors[a.status] || "text-gray-600"}`}>
+        Status: {a.status.toUpperCase()}
+      </p> */}
+      {/* <p className={`text-xs mt-1 font-semibold ${
         a.status === "cancelled" ? "text-red-600" : "text-green-600"
       }`}>
         Status: {a.status.toUpperCase()}
-      </p>
+      </p> */}
     </div>
 
     <div>
@@ -181,10 +307,15 @@ export default function AppointmentsPage() {
         onToggle={() => setOpenDropdownId(openDropdownId === a.id ? null : a.id)}
         onView={() => handleView(a.id)}
         onCancel={
-          a.status === "pending" || a.status === "approved" ? () => handleCancel(a.id) : undefined
+          a.status === "pending" || a.status === "approved"
+            ? () => setConfirmCancelId(a.id) 
+            : undefined
         }
+        // onCancel={
+        //   a.status === "pending" || a.status === "approved" ? () => handleCancel(a.id) : undefined
+        // }
         onReschedule={
-          a.status === "approved"
+          canReschedule(a) 
             ? () => {
                 setSelected(a);
                 setRescheduleMode(true);
@@ -192,6 +323,13 @@ export default function AppointmentsPage() {
             : undefined
         }
         visibleButtons={["View", "Cancel", "Reschedule"]}
+      />
+
+      <ConfirmModal
+        open={!!confirmCancelId}
+        message="Are you sure you want to cancel this appointment?"
+        onConfirm={() => confirmCancelId && handleCancel(confirmCancelId)}
+        onCancel={() => setConfirmCancelId(null)}
       />
     </div>
   </div>

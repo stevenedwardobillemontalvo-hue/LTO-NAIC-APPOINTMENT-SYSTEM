@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { isTokenExpired } from "../../utils/auth";
 import { clientInfo } from "../../services/client/appointment";
+import { useSnackbar } from "notistack";
 
 interface SidebarProps {
   role: string;
@@ -11,12 +12,13 @@ interface SidebarProps {
 export default function Sidebar({ role, id }: SidebarProps) {
   const navigate = useNavigate();
   const [firstName, setFirstName] = useState<string>("");
+  const { enqueueSnackbar } = useSnackbar();
 
   const menu =
     role === "SuperAdmin"
       ? [
           { label: "Dashboard", to: `/dashboard/${id}` },
-          { label: "Admin Calendar", to: `/dashboard/${id}/calendar` },
+          { label: "Manage Calendar", to: `/dashboard/${id}/calendar` },
           { label: "List of Appointments", to: `/dashboard/${id}/appointments` },
           { label: "Applicants", to: `/dashboard/${id}/applicants` },
           { label: "Admin", to: `/dashboard/${id}/manage-admins` },
@@ -24,7 +26,7 @@ export default function Sidebar({ role, id }: SidebarProps) {
       : role === "Admin"
       ? [
           { label: "Dashboard", to: `/dashboard/${id}` },
-          { label: "Admin Calendar", to: `/dashboard/${id}/calendar` },
+          { label: "Manage Calendar", to: `/dashboard/${id}/calendar` },
           { label: "List of Appointments", to: `/dashboard/${id}/appointments` },
           { label: "Applicants", to: `/dashboard/${id}/applicants` },
         ]
@@ -55,12 +57,19 @@ export default function Sidebar({ role, id }: SidebarProps) {
   const handleSidebarClick = (to: string) => {
     const token = localStorage.getItem("token");
     if (!token || isTokenExpired(token)) {
-      alert("Session expired. Please login again.");
+      enqueueSnackbar("Session expired. Please login again.", {
+        variant: "warning",
+      });
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      window.location.reload();
+      
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
+
       return;
     }
+    
     navigate(to);
   };
 

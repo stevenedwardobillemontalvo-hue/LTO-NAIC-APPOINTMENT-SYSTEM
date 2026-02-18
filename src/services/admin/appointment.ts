@@ -17,12 +17,12 @@ export const getAdminAppointments = async (token: string) => {
 
   if (!res.ok) {
     const errorText = await res.text();
-    console.error("❌ Fetch failed:", errorText);
+    console.error("Fetch failed:", errorText);
     throw new Error(`Failed to fetch appointments (${res.status})`);
   }
 
   const json = await res.json();
-  console.log("✅ JSON response:", json);
+  console.log("JSON response:", json);
   return json.appointments || [];
 };
 

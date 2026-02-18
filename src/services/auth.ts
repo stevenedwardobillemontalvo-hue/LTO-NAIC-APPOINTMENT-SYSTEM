@@ -19,10 +19,10 @@ export interface ApiResponse {
   [key: string]: any;
 }
 
-const BASE_URL = "https://lto-naic-appointment-server.onrender.com";
+const BASE_URL = "https://lto-naic-appointment-server.onrender.com/auth";
 
 export const registerUser = async (formData: RegisterFormData): Promise<ApiResponse> => {
-  const res = await fetch(`${BASE_URL}/auth/register`, {
+  const res = await fetch(`${BASE_URL}/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",

@@ -1,6 +1,6 @@
 import LTOLogo from "../assets/LTO.png";
 
-const Logo = () => {
+const PrintLogo = () => {
   return (
     <div className="relative flex items-center gap-4">
       
@@ -9,7 +9,7 @@ const Logo = () => {
           src={LTOLogo}
           alt="LTO Logo"
           className="
-            w-30 h-30 md:w-28 md:h-28
+            w-25 h-25 md:w-25 md:h-25
             mb-3 md:-mb-8
             drop-shadow-md
           "
@@ -17,13 +17,13 @@ const Logo = () => {
       </div>
 
       <div className="flex flex-col leading-tight text-gray-800 uppercase">
-        <p className="text-xs md:text-sm tracking-wide">
+        <p className="text-l md:text-l tracking-wide">
           Department of Transportation
         </p>
-        <p className="font-bold text-sm md:text-base">
+        <p className="font-bold text-l md:text-base">
           Land Transportation Office
         </p>
-        <p className="text-xs md:text-sm">
+        <p className="text-l md:text-l">
           Naic, Cavite
         </p>
       </div>
@@ -31,4 +31,4 @@ const Logo = () => {
   );
 };
 
-export default Logo;
+export default PrintLogo;

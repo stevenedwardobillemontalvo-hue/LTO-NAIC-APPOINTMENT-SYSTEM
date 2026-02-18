@@ -1,6 +1,7 @@
 import { useState } from "react";
 import DropdownMenu from "../../../../components/dropdownMenu";
 import {
+  // viewAppointment,
   statusAppointment,
   AppointmentNote
 } from "../../../../services/admin/appointment";
@@ -30,14 +31,26 @@ interface Props {
   onReject: (note: string) => void;
 }
 
+// interface Appointment {
+//   id: string;
+//   name: string;
+//   appointmentDate: string;
+//   appointmentTime: string;
+//   status: string;
+//   note?: string;
+// }
+
 export default function ViewAppointment({
   appointment,
   onApprove,
+  // onReject,
 }: Props) {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [zoomImage, setZoomImage] = useState<string | null>(null);
   const [openMenu, setOpenMenu] = useState(false);
   const [note, setNote] = useState(appointment.note || "");
+  // const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [processing, setProcessing] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -48,10 +61,12 @@ export default function ViewAppointment({
   const personal = appointment.client || {};
 
  const handleApprove = async () => {
+  if (processing) return;
   const token = localStorage.getItem("token");
   if (!token) return;
 
   try {
+    setProcessing(true);
     await statusAppointment(appointment.id, token, "approved");
     if (note.trim() !== "") {
       await AppointmentNote(appointment.id, token, note);
@@ -60,35 +75,52 @@ export default function ViewAppointment({
     enqueueSnackbar("Appointment approved!", { variant: "success" });
 
     onApprove(note);
+    setOpenMenu(false);
 
   } catch (err) {
     console.error(err);
     enqueueSnackbar("Failed to approve appointment", { variant: "error" });
+  }finally {
+    setProcessing(false);
   }
 };
 
   
   const handleReject = async () => {
+    if (processing) return;
     const token = localStorage.getItem("token");
     if (!token) return;
 
     try {
-      await statusAppointment(appointment.id, token, "approved");
+      setProcessing(true);
+      await statusAppointment(appointment.id, token, "rejected");
       if (note.trim() !== "") {
         await AppointmentNote(appointment.id, token, note);
       }
     
-      enqueueSnackbar("Appointment rejected!", { variant: "warning" });
+      enqueueSnackbar("Appointment disapproved!", { variant: "warning" });
 
-      onApprove(note);
+      // onReject(note);
+      setOpenMenu(false);
 
     } catch (err) {
       console.error(err);
       enqueueSnackbar("Failed to reject appointment", { variant: "error" });
-    }
+    }finally {
+    setProcessing(false);
+  }
   };
 
   const formatAppointmentTime = (time: string) => {
+  // const [startStr, endStr] = time.split("-");
+  // let start = Number(startStr);
+  // let end = Number(endStr);
+
+  // const formatHour = (hour: number) => {
+  //   if (hour === 12) return "12:00PM";
+  //   if (hour >= 1 && hour < 12) return `${hour}:00${hour >= 8 ? "AM" : "PM"}`; // fix later
+  //   return `${hour}:00AM`;
+  // };
 
   const slots: Record<string, string> = {
     "8-9": "8:00AM-9:00AM",
@@ -111,15 +143,16 @@ export default function ViewAppointment({
         <DropdownMenu 
               open={openMenu} 
               onToggle={() => setOpenMenu(!openMenu)} 
-              onApprove={appointment.status === "pending" ? handleApprove : undefined} 
-              onReject={appointment.status === "pending" ? handleReject : undefined} 
-              visibleButtons={["Approve", "Reject"]}
+              onApprove={appointment.status === "pending" && !processing ? handleApprove : undefined} 
+              onReject={appointment.status === "pending" && !processing ? handleReject : undefined} 
+              // visibleButtons={["Approve", "Reject"]}
+              visibleButtons={["Approve", "Disapprove"]}
         />
       </div>
 
       <div className="space-y-1">
         <p>
-          <strong>ID:</strong> {appointment.id}
+          <strong>REF. ID:</strong> {appointment.id.toUpperCase()}
         </p>
         <p>
           <strong>Appointment Date & Time:</strong> {appointment.appointmentDate} — {formatAppointmentTime(appointment.appointmentTime)}
@@ -131,7 +164,11 @@ export default function ViewAppointment({
           </p>
         )}
         <p>
-          <strong>Status:</strong> {appointment.status}
+          {/* <strong>Status:</strong> {appointment.status} */}
+          <strong>Status:</strong>{" "}
+          {appointment.status === "rejected"
+            ? "DISAPPROVED"
+            : appointment.status.toUpperCase()}
         </p>
       </div>
       <hr />
@@ -192,12 +229,25 @@ export default function ViewAppointment({
       )}
 
       <hr />
-       <div>
+       {/* <div>
         <label className="font-semibold">Admin Note:</label>
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
           className="w-full mt-2 p-2 border rounded"
+          rows={4}
+          placeholder="Enter note here before approving/rejecting..."
+        />
+      </div> */}
+      <div>
+        <label className="font-semibold">Admin Note:</label>
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          disabled={appointment.status !== "pending"} // disable kung hindi pending
+          className={`w-full mt-2 p-2 border rounded ${
+            appointment.status !== "pending" ? "bg-gray-200 cursor-not-allowed opacity-70" : "bg-white"
+          }`}
           rows={4}
           placeholder="Enter note here before approving/rejecting..."
         />

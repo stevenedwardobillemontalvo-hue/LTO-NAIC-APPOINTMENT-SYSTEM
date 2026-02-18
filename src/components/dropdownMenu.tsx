@@ -27,7 +27,7 @@ export default function DropdownMenu({
     { label: "Print", onClick: onPrint, color: "" },
     { label: "View", onClick: onView, color: "" },
     { label: "Approve", onClick: onApprove, color: "text-green-600" },
-    { label: "Reject", onClick: onReject, color: "text-red-600" },
+    { label: "Disapprove", onClick: onReject, color: "text-red-600" },
     { label: "Cancel", onClick: onCancel, color: "text-red-600" },
     { label: "Reschedule", onClick: onReschedule, color: "" },
   ];

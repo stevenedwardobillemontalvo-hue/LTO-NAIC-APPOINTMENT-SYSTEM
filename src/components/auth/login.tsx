@@ -68,7 +68,6 @@ export default function LoginPanel() {
     }
 
     setResetLoading(true);
-    // setResetMessage("");
     try {
       const { data } = await axios.post(
         "https://lto-naic-appointment-server.onrender.com/auth/forgot-password",

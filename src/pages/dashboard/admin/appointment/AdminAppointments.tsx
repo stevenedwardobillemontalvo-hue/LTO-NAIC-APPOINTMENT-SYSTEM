@@ -8,6 +8,7 @@ import DropdownMenu from "../../../../components/dropdownMenu";
 import ViewAppointment from "./ViewAppointment";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSnackbar } from "notistack";
+import NoteModal from "../../../../components/noteModal"
 
 interface Appointment {
   id: string;
@@ -22,6 +23,7 @@ export default function AdminApplicants() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<any | null>(null);
+  // const [loadingView, setLoadingView] = useState(false);
   const [loadingView] = useState(false);
   const navigate = useNavigate();
   const { id } = useParams();
@@ -33,10 +35,37 @@ export default function AdminApplicants() {
   const [appliedFilters, setAppliedFilters] = useState(false);
   const [statusQuery, setStatusQuery] = useState("");
   const [statusOpen, setStatusOpen] = useState(false);
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   const STATUS_OPTIONS = ["pending", "approved", "rejected", "cancelled"];
-  const { enqueueSnackbar } = useSnackbar();
 
+  const displayStatus = (status: string) => {
+  if (status === "rejected") return "Disapproved";
+  return status.charAt(0).toUpperCase() + status.slice(1);
+};
+
+const normalizeStatus = (status: string) => {
+  if (status.toLowerCase() === "disapproved") return "rejected";
+  return status.toLowerCase();
+};
+
+
+  const { enqueueSnackbar } = useSnackbar();
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+
+  const openRejectModal = (id: string) => {
+    setRejectingId(id);
+    setRejectModalOpen(true);
+  };
+
+  const handleRejectSubmit = async (note: string) => {
+    if (rejectingId) {
+      await handleReject(rejectingId, note);
+      setRejectingId(null);
+      setRejectModalOpen(false);
+    }
+  };
   const addStatus = (status: string) => {
     if (!selectedStatuses.includes(status)) {
       setSelectedStatuses((prev) => [...prev, status]);
@@ -49,6 +78,14 @@ export default function AdminApplicants() {
     setSelectedStatuses((prev) => prev.filter((s) => s !== status));
   };
 
+  // const toggleStatus = (status: string) => {
+  //   setSelectedStatuses((prev) =>
+  //     prev.includes(status)
+  //       ? prev.filter((s) => s !== status)
+  //       : [...prev, status]
+  //   );
+  // };
+
 const handleFilter = () => {
   setAppliedFilters(true); 
 };
@@ -60,11 +97,20 @@ const handleClear = () => {
   setStatusQuery("");
   setAppliedFilters(false); 
 };
-const filteredStatusOptions: string[] = STATUS_OPTIONS.filter(
-  (status) =>
-    status.includes(statusQuery.toLowerCase()) &&
-    !selectedStatuses.includes(status)
-);
+// const filteredStatusOptions: string[] = STATUS_OPTIONS.filter(
+//   (status) =>
+//     status.includes(statusQuery.toLowerCase()) &&
+//     !selectedStatuses.includes(status)
+// );
+const filteredStatusOptions: string[] = STATUS_OPTIONS.filter((status) => {
+  const query = normalizeStatus(statusQuery);
+
+  const matchesValue = status.includes(query);
+  const matchesLabel = displayStatus(status).toLowerCase().includes(statusQuery.toLowerCase());
+
+  return (matchesValue || matchesLabel) && !selectedStatuses.includes(status);
+});
+
 
 const filteredAppointments = appointments.filter((a) => {
   if (!appliedFilters) return true;
@@ -162,9 +208,12 @@ const filteredAppointments = appointments.filter((a) => {
   };
 
 const handleApprove = async (id: string, note?: string) => {
+  if (processingId === id) return;
+
   const token = localStorage.getItem("token");
   if (!token) return;
   try {
+    setProcessingId(id);
     if (note && note.trim() !== "") {
       await AppointmentNote(id, token, note);
     }
@@ -185,18 +234,22 @@ const handleApprove = async (id: string, note?: string) => {
   } catch (err) {
     console.error(err);
     enqueueSnackbar("Failed to approve appointment", { variant: "error" });
+  } finally {
+    setProcessingId(null);
   }
 };
 
 const handleReject = async (id: string, note?: string) => {
+  if (processingId === id) return;
   const token = localStorage.getItem("token");
   if (!token) return;
   try {
+    setProcessingId(id);
     if (note && note.trim() !== "") {
       await AppointmentNote(id, token, note);
     }
     await statusAppointment(id, token, "rejected");
-    enqueueSnackbar("Appointment rejected!", { variant: "warning" });
+    enqueueSnackbar("Appointment disapproved!", { variant: "warning" });
 
     setAppointments((prev) =>
       prev.map((a) =>
@@ -211,10 +264,21 @@ const handleReject = async (id: string, note?: string) => {
   } catch (err) {
     console.error(err);
     enqueueSnackbar("Failed to reject appointment", { variant: "error" });
+  } finally {
+    setProcessingId(null);
   }
 };
 
 const formatAppointmentTime = (time: string) => {
+  // const [startStr, endStr] = time.split("-");
+  // let start = Number(startStr);
+  // let end = Number(endStr);
+
+  // const formatHour = (hour: number) => {
+  //   if (hour === 12) return "12:00PM";
+  //   if (hour >= 1 && hour < 12) return `${hour}:00${hour >= 8 ? "AM" : "PM"}`; // fix later
+  //   return `${hour}:00AM`;
+  // };
 
   const slots: Record<string, string> = {
     "8-9": "8:00AM-9:00AM",
@@ -261,7 +325,7 @@ const formatAppointmentTime = (time: string) => {
   </div>
 
       <div className="flex flex-col relative min-w-[200px]">
-        <label className="text-xs text-gray-600">Status</label>
+        <label className="text-xs text-gray-600">Search Status</label>
 
         <div
           className="border px-3 py-1 rounded text-sm flex-wrap gap-1 items-center cursor-text"
@@ -272,7 +336,8 @@ const formatAppointmentTime = (time: string) => {
               key={status}
               className="flex items-center gap-1 bg-blue-100 text-blue-700 rounded text-xs capitalize"
             >
-              {status}
+              {/* {status} */}
+              {displayStatus(status)}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -305,7 +370,8 @@ const formatAppointmentTime = (time: string) => {
                 onClick={() => addStatus(status)}
                 className="px-3 py-2 text-sm capitalize cursor-pointer hover:bg-gray-100"
               >
-                {status}
+                {/* {status} */}
+                {displayStatus(status)}
               </div>
             ))}
           </div>
@@ -339,27 +405,27 @@ const formatAppointmentTime = (time: string) => {
           />
         )
       ) : (
-        <div className="overflow-x-auto rounded-lg shadow bg-white">
+        <div className="h-100% rounded-lg shadow bg-white">
           <table className="w-full border-collapse text-sm text-gray-800">
             <thead className="bg-gray-200 text-left">
               <tr>
-                <th className="p-3 border-b cursor-pointer" onClick={() => handleSort("id")}>
+                <th className="p-3 border-b border-r cursor-pointer w-80" onClick={() => handleSort("id")}>
                   ID {getSortIcon("id")}
                 </th>
 
-                <th className="p-3 border-b cursor-pointer" onClick={() => handleSort("name")}>
+                <th className="p-3 border-b border-r cursor-pointer" onClick={() => handleSort("name")}>
                   Name {getSortIcon("name")}
                 </th>
 
-                <th className="p-3 border-b cursor-pointer" onClick={() => handleSort("appointmentDate")}>
-                  Date {getSortIcon("appointmentDate")}
+                <th className="p-3 border-b border-r cursor-pointer w-50" onClick={() => handleSort("appointmentDate")}>
+                  Date of Appointment {getSortIcon("appointmentDate")}
                 </th>
 
-                <th className="p-3 border-b cursor-pointer" onClick={() => handleSort("appointmentTime")}>
+                <th className="p-3 border-b border-r cursor-pointer w-40" onClick={() => handleSort("appointmentTime")}>
                   Time {getSortIcon("appointmentTime")}
                 </th>
 
-                <th className="p-3 border-b cursor-pointer" onClick={() => handleSort("status")}>
+                <th className="p-3 border-b border-r cursor-pointer w-40" onClick={() => handleSort("status")}>
                   Status {getSortIcon("status")}
                 </th>
               </tr>
@@ -370,26 +436,28 @@ const formatAppointmentTime = (time: string) => {
                   key={a.id}
                   className="hover:bg-gray-50 transition-colors duration-150"
                 >
-                  <td className="p-3 border-b font-medium">{a.id}</td>
-                  <td className="p-3 border-b">{a.name}</td>
-                  <td className="p-3 border-b">{a.appointmentDate}</td>
-                  <td className="p-3 border-b">{formatAppointmentTime(a.appointmentTime)}</td>
-                  <td className="p-3 border-b">
+                  <td className="p-3 border-b border-r last:border-r-0 font-medium">{a.id}</td>
+                  <td className="p-3 border-b border-r last:border-r-0">{a.name}</td>
+                  <td className="p-3 border-b border-r last:border-r-0">{a.appointmentDate}</td>
+                  <td className="p-3 border-b border-r last:border-r-0">{formatAppointmentTime(a.appointmentTime)}</td>
+                  <td className="p-3 border-b border-r last:border-r-0">
                     <div className="flex items-center justify-between">
                       <span
                         className={`capitalize ${
                           a.status === "cancelled"
-                            ? "text-red-500"
+                            ? "text-orange-500"
                             : a.status === "pending"
-                            ? "text-yellow-600"
+                            ? "text-blue-500"
                             : a.status === "rejected"
-                            ? "text-red-500"
+                            ? "text-red-600"
                             : a.status === "approved"
                             ? "text-green-600"
                             : "text-gray-700"
                         }`}
                       >
-                        {a.status}
+                        {/* {a.status} */}
+                        {/* {a.status === "rejected" ? "Disapproved" : a.status} */}
+                        {displayStatus(a.status)}
                       </span>
                       <DropdownMenu
                         open={openDropdownId === a.id}
@@ -397,17 +465,23 @@ const formatAppointmentTime = (time: string) => {
                           setOpenDropdownId(openDropdownId === a.id ? null : a.id)
                         }
                         onView={() => handleView(a.id)}
-                       onApprove={a.status === "pending" ? async () => {
-                        const note = prompt("Enter a note before approving:") || "";
-                        await handleApprove(a.id, note);
+                       onApprove={a.status === "pending" && processingId !== a.id
+                        ? async () => {
+                        await handleApprove(a.id);
                       } : undefined}
 
-                      onReject={a.status === "pending" ? async () => {
-                        const note = prompt("Enter a note before rejecting:") || "";
-                        await handleReject(a.id, note);
-                      } : undefined}
-                        visibleButtons={["View", "Approve", "Reject"]}
+                      onReject={a.status === "pending" && processingId !== a.id
+                        ? () => openRejectModal(a.id)
+                        : undefined}
+                        // visibleButtons={["View", "Approve", "Reject"]}
+                        visibleButtons={["View", "Approve", "Disapprove"]}
                       />
+                      <NoteModal
+                          title="Reject Appointment"
+                          isOpen={rejectModalOpen}
+                          onClose={() => setRejectModalOpen(false)}
+                          onSubmit={handleRejectSubmit}
+                        />
                     </div>
                   </td>
                 </tr>

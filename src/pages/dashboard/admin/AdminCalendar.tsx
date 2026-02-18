@@ -4,6 +4,8 @@ import { socket } from "../../../utils/socket";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { useSnackbar } from "notistack";
+import { format } from "date-fns";
+import "./AdminCalendar.scss"
 
 const times = [
   "08:00-09:00",
@@ -27,25 +29,49 @@ export default function BlockDatesPage() {
   const { enqueueSnackbar } = useSnackbar();
 
 
-  const handleDateChange = async (date: any) => {
-    setSelectedDate(date);
-    setActive(true);
+const handleDateChange = async (date: any) => {
+  setSelectedDate(date);
 
-    const token = localStorage.getItem("token");
-    if (!token) return;
+  const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
   try {
     const dateString = date.toLocaleDateString("en-CA");
     const blocks = await getBlockDates(token, dateString);
 
-    const updated = Object.fromEntries(times.map((t) => [t, 6]));
-    for (const b of blocks) {
-      updated[b.time] = b.maxSlots;
+    let updated: Record<string, number>;
+
+    if (blocks.length > 0) {
+      updated = Object.fromEntries(times.map((t) => [t, 6])); // default
+      for (const b of blocks) {
+        updated[b.time] = b.maxSlots;
+      }
+    } else {
+      updated = Object.fromEntries(times.map((t) => [t, isWeekend ? 0 : 6]));
     }
 
     setAvailability(updated);
+
+    const allZero = Object.values(updated).every((val) => val === 0);
+    setActive(!allZero);
   } catch (err) {
-      enqueueSnackbar("Failed to fetch block dates", { variant: "error" });
-    }
+    enqueueSnackbar("Failed to fetch block dates", { variant: "error" });
+  }
+};
+
+  const handleToggleActive = () => {
+    setActive((prev) => {
+      const newActive = !prev;
+      setAvailability((prevAvail) => {
+        const newAvail = Object.fromEntries(
+          Object.entries(prevAvail).map(([time]) => [time, newActive ? 6 : 0])
+        );
+        return newAvail;
+      });
+      return newActive;
+    });
   };
 
   const handleAdjust = (time: string, change: number) => {
@@ -105,7 +131,7 @@ export default function BlockDatesPage() {
   return (
     <div className="flex p-8 gap-8">
       <div className="w-2/3">
-        <h1 className="text-2xl font-semibold mb-4">Block Dates Management</h1>
+        <h1 className="text-2xl font-semibold mb-4">Manage Calendar</h1>
 
         <div className="bg-white shadow rounded-lg p-6">
           <div className="flex justify-between items-center mb-4">
@@ -118,12 +144,12 @@ export default function BlockDatesPage() {
 
             {selectedDate && (
               <button
-                onClick={() => setActive(!active)}
+                onClick={handleToggleActive}
                 className={`px-4 py-2 rounded ${
                   active ? "bg-green-500 text-white" : "bg-gray-400 text-white"
                 }`}
               >
-                {active ? "ON" : "OFF"}
+                {active ? "ACTIVE" : "INACTIVE"}
               </button>
             )}
           </div>
@@ -163,7 +189,7 @@ export default function BlockDatesPage() {
               </tbody>
             </table>
           ) : (
-            <p className="text-gray-500">Select a date on the calendar →</p>
+            <p className="text-gray-500">Please select a date to manage. </p>
           )}
 
           <div className="flex justify-end gap-4 mt-4">
@@ -184,12 +210,16 @@ export default function BlockDatesPage() {
         </div>
       </div>
 
-      <div className="w-1/3 bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-semibold mb-2 text-center">📅 Select Date</h2>
+      {/* <div className="w-1/3 bg-white shadow rounded-lg p-6"> */}
+      <div className="w-1/3 bg-white shadow rounded-lg p-6 flex flex-col h-[420px]">
+        <h2 className="text-lg font-semibold mb-2 text-center">CALENDAR</h2>
         <Calendar
           onChange={handleDateChange}
           value={selectedDate}
-          className="rounded-lg border-none"
+          // className="rounded-lg border-none"
+          calendarType="gregory"
+          formatShortWeekday={(_, date) => format(date, "EEE").toUpperCase()}
+          className="w-full rounded-lg border-none text-base"
         />
       </div>
     </div>

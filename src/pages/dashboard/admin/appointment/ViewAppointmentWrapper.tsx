@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { viewAppointment, statusAppointment } from "../../../../services/admin/appointment";
+// import { viewAppointment, statusAppointment } from "../../../../services/admin/appointment";
+import { viewAppointment } from "../../../../services/admin/appointment";
 import ViewAppointment from "./ViewAppointment";
 import { useSnackbar } from "notistack";
 
@@ -9,6 +10,7 @@ export default function ViewAppointmentWrapper() {
   const [appointment, setAppointment] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { enqueueSnackbar } = useSnackbar()
+  // const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     if (!appointmentId) return;
@@ -29,31 +31,13 @@ export default function ViewAppointmentWrapper() {
   if (loading) return <p>Loading appointment...</p>;
   if (!appointment) return <p>Appointment not found</p>;
 
-  const handleApprove = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      if (!token) return;
-      await statusAppointment(appointment.id, token, "approved");
-      setAppointment({ ...appointment, status: "approved" });
-      enqueueSnackbar("Appointment approved!", { variant: "success" });
-    } catch (err) {
-        console.error(err);
-        enqueueSnackbar("Failed to approve appointment", { variant: "error" });
-      }
-    };
+const handleApprove = (note: string) => {
+  setAppointment({ ...appointment, status: "approved", note });
+};
 
-  const handleReject = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-      await statusAppointment(appointment.id, token, "rejected");
-      setAppointment({ ...appointment, status: "rejected" });
-      enqueueSnackbar("Appointment rejected!", { variant: "warning" });
-    } catch (err) {
-      console.error(err);
-      enqueueSnackbar("Failed to reject appointment", { variant: "error" });
-    }
-  };
+const handleReject = (note: string) => {
+  setAppointment({ ...appointment, status: "rejected", note });
+};
 
   return (
     <ViewAppointment

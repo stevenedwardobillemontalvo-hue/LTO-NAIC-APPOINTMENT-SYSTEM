@@ -1,5 +1,6 @@
 import { forwardRef } from "react";
-import Logo from "../../../../components/header";
+// import Logo from "../../../../components/header";
+import PrintLogo from "../../../../components/printHeader";
 import QRCode from "react-qr-code"
 
 interface PrintProps {
@@ -30,9 +31,10 @@ const Print = forwardRef<HTMLDivElement, PrintProps>(({ appointment }, ref) => {
   const client = appointment.client || {};
   const fullName = `${client.firstName || ""} ${client.middleName || ""} ${client.lastName || ""}`.replace(/\s+/g, " ").trim();
 
-  const confirmationURL = `https://lto-naic-appointment-system.vercel.app/confirmation/${appointment.id}`;
+  const confirmationURL = `http://localhost:5173/confirmation/${appointment.id}`;
 
   const formatAppointmentTime = (time: string) => {
+
   const slots: Record<string, string> = {
     "8-9": "8:00AM-9:00AM",
     "9-10": "9:00AM-10:00AM",
@@ -48,16 +50,22 @@ const Print = forwardRef<HTMLDivElement, PrintProps>(({ appointment }, ref) => {
 };
 
   return (
-    <div ref={ref} className="p-10 bg-white text-gray-900 space-y-6">
-      <Logo />
+    // <div ref={ref} className="p-10 bg-white text-gray-900 space-y-6">
+    <div ref={ref} className="p-10 bg-white text-gray-900 space-y-8 leading-relaxed">
+      <PrintLogo />
 
       <div className="mt-8 border-t pt-6">
         <h2 className="text-xl font-bold text-center uppercase mb-6">
           Appointment Details
         </h2>
 
-        <div className="space-y-1">
-          <p><strong>ID:</strong> {appointment.id}</p>
+        {/* <div className="space-y-1"> */}
+        <div className="space-y-2 text-[16px] leading-7">
+          {/* <p><strong>ID:</strong> {appointment.id}</p> */}
+          <p>
+              <strong>Ref. ID:</strong>{" "}
+              {(appointment.id || "").slice(0, 8).toUpperCase()}
+            </p>
           <p>
             <strong>Appointment Date & Time:</strong> {appointment.appointmentDate} — {formatAppointmentTime(appointment.appointmentTime)}
           </p>
@@ -66,18 +74,22 @@ const Print = forwardRef<HTMLDivElement, PrintProps>(({ appointment }, ref) => {
               <strong>Request Date:</strong> {new Date(appointment.createdAt).toISOString().split("T")[0]}
             </p>
           )}
-          <p><strong>Status:</strong> {appointment.status}</p>
+          <p>
+            <strong>Status:</strong>{" "}
+            {(appointment.status || "N/A").toUpperCase()}
+          </p>
         </div>
-        <hr />
+        <hr className="my-4" />
 
-        <div className="space-y-1">
+        {/* <div className="space-y-1"> */}
+        <div className="space-y-2 text-[16px] leading-7">
           <p><strong>Name:</strong> {fullName}</p>
           {client.birthdate && <p><strong>Birthdate:</strong> {client.birthdate}</p>}
           {client.email && <p><strong>Email Address:</strong> {client.email}</p>}
           {client.contactNumber && <p><strong>Contact Number:</strong> {client.contactNumber}</p>}
           <p><strong>Type of Application:</strong> {typeOfTransaction}</p>
         </div>
-        <hr />
+        <hr className="my-4" />
 
         <div>
           <strong>Uploaded Requirements:</strong>
@@ -85,27 +97,25 @@ const Print = forwardRef<HTMLDivElement, PrintProps>(({ appointment }, ref) => {
             <p>No documents uploaded.</p>
           ) : (
             <ul className="list-disc ml-6">
-              {Object.entries(requirement).map(([key, value]) => (
+              {Object.entries(requirement).map(([key]) => (
                 <li key={key}>
-                  {key}:{" "}
-                  <a href={value} target="_blank" rel="noreferrer">
-                    {value}
-                  </a>
+                  {key}
                 </li>
               ))}
             </ul>
           )}
         </div>
-        <hr />
+        <hr className="my-4" />
 
         <div>
-          <p>{appointment.note || "Kindly bring your hard copy requirement."}</p>
+          <p><strong>Note:</strong> {appointment.note || "Kindly bring your hard copy requirement."}</p>
           
         </div>
-        <hr />
-        <div className="space-y-1">
+        <hr className="my-4" />
+        {/* <div className="space-y-1"> */}
+        <div className="space-y-2 text-[16px] leading-7">
           <p className="mb-2 font-semibold">Scan this QR code to view your confirmation online:</p>
-          <QRCode value={confirmationURL} size={150} />
+          <QRCode value={confirmationURL} size={130} />
         </div>
       </div>
     </div>

@@ -5,6 +5,8 @@ import { checkTokenAndLogout } from "../src/utils/auth"
 
 import Home from "./pages/auth";
 import Dashboard from "./pages/dashboard";
+import PrivacyPolicy from "./pages/Policy";
+import Terms from "./pages/Terms";
 
 import AdminDashboard from "./pages/dashboard/admin/AdminDashboard";
 import AdminAppointments from "./pages/dashboard/admin/appointment/AdminAppointments";
@@ -15,14 +17,14 @@ import Admin from "./pages/dashboard/admin/Admin";
 
 import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
+// import ClientDashboard from "./pages/dashboard/client/ClientDashboard";
 import Appointment from "./pages/dashboard/client/Appointment/Appointment";
 import MyAppointments from "./pages/dashboard/client/myAppointment/myAppointments";
 
 import ConfirmationPage from "./pages/ConfirmationPage";
 import Confirmation from "./pages/Confirmation";
 
-import Terms from "./pages/Terms";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
+import { NavigateToRoleDashboard } from "./pages/NavigateToRoleDashboard";
 
 import GoogleRedirectHandler from "./pages/dashboard/client/GoogleRedirectHandler";
 
@@ -38,8 +40,12 @@ export default function App() {
   return (
     <Routes>
      
+      <Route path="/" element={<GuestRoute><Home /></GuestRoute>} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms-and-condition" element={<Terms />} />
+      <Route path="/dashboard" element={<ProtectedRoute><NavigateToRoleDashboard /></ProtectedRoute>} />
       <Route
-        path="/"
+        path="/dashboard/:id"
         element={
           <GuestRoute>
             <Home />
@@ -49,18 +55,26 @@ export default function App() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/confirmation" element={<Confirmation />} />
-      <Route path="/terms" element={<Terms/>} />
-      <Route path="/privacy-policy" element={<PrivacyPolicy/>} />
-
-      <Route path="/dashboard/:id" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}>
+      <Route path="/dashboard/:id"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      >
+    
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="appointments" element={<AdminAppointments />} />
         <Route path="appointments/:appointmentId" element={<ViewAppointmentWrapper />} />
         <Route path="applicants" element={<AdminApplicants />} />
         <Route path="calendar" element={<AdminCalendar />} />
         <Route path="manage-admins" element={<Admin />} />
+   
         <Route path="appointment" element={<Appointment />} />
         <Route path="my-appointments" element={<MyAppointments />} />
+        <Route path="*" element={<NavigateToRoleDashboard />} />
+        
+
       </Route>
 
 

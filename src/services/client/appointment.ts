@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_BASE = import.meta.env.VITE_API_URL || "https://lto-naic-appointment-server.onrender.com";
+// const API_BASE = import.meta.env.VITE_API_URL || "https://lto-naic-appointment-server.onrender.com";
+const API_BASE = import.meta.env.VITE_BACKEND_URL || "https://lto-naic-appointment-server.onrender.com";
 
 export const getClientAppointments = async (token: string) => {
   const url = `${API_BASE}/appointment/client`;
@@ -15,7 +16,7 @@ export const getClientAppointments = async (token: string) => {
 
   if (!res.ok) {
     const errorText = await res.text();
-    console.error("❌ Fetch failed:", errorText);
+    console.error("Fetch failed:", errorText);
     throw new Error(`Failed to fetch appointments (${res.status})`);
   }
 
@@ -47,7 +48,7 @@ export const clientInfo = async (token: string) => {
 export const createAppointment = async (formData: FormData) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Token not found");
-  console.log("🧾 Sending form data to backend:");
+  console.log("Sending form data to backend:");
     for (const [key, value] of formData.entries()) {
       console.log(`${key}:`, value);
     }
@@ -56,6 +57,7 @@ export const createAppointment = async (formData: FormData) => {
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "multipart/form-data",
+      // "Content-Type": "application/json"
     },
   });
 

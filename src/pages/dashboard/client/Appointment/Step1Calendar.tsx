@@ -13,7 +13,8 @@ interface BlockDate {
   maxSlots: number;
 }
 
-const TIME_SLOTS = ["8:00AM-9:00AM","9:00AM-10:00AM","10:00AM-11:00AM","11:00AM-12:00PM","12:00PM-1:00PM","1:00PM-2:00PM","2:00PM-3:00PM","3:00PM-4:00PM"];
+const TIME_SLOTS = ["08:00AM-09:00AM","09:00AM-10:00AM","10:00AM-11:00AM","11:00AM-12:00PM","12:00PM-1:00PM","1:00PM-2:00PM","2:00PM-3:00PM","3:00PM-4:00PM"];
+// const TIME_SLOTS = ["8-9","9-10","10-11","11-12","12-1","1-2","2-3","3-4"];
 
 const normalizeSlot = (slot: string) => {
   const [start, end] = slot.split("-");
@@ -38,6 +39,52 @@ export default function Step1Calendar({ updateForm, onNext }: Props) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const { enqueueSnackbar } = useSnackbar();
+  const [availabilityMap, setAvailabilityMap] = useState<Record<string, number>>({});
+  const [availabilityRange, setAvailabilityRange] = useState<{ start: string; end: string } | null>(null);
+
+  useEffect(() => {
+    const fetchAvailability = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        const today = new Date();
+        const nextMonth = new Date();
+        nextMonth.setMonth(today.getMonth() + 1);
+
+        const map: Record<string, number> = {};
+        let d = new Date(today);
+
+        while (d <= nextMonth) {
+          const dateStr = format(d, "yyyy-MM-dd");
+          const data: BlockDate[] = await getBlockDates(token, dateStr);
+
+          const totalSlots = data.reduce((sum, b) => sum + b.maxSlots, 0);
+
+          const day = d.getDay();
+          if (data.length === 0) {
+            map[dateStr] = day === 0 || day === 6 ? 0 : 6; 
+          } else {
+            map[dateStr] = totalSlots;
+          }
+
+          d.setDate(d.getDate() + 1);
+        }
+
+        setAvailabilityMap(map);
+        setAvailabilityRange({
+          start: format(today, "yyyy-MM-dd"),
+          end: format(nextMonth, "yyyy-MM-dd"),
+        });
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAvailability();
+  }, []);
 
 
   useEffect(() => {
@@ -90,49 +137,57 @@ export default function Step1Calendar({ updateForm, onNext }: Props) {
   };
 
 
-  const tileClassName = ({ date, view }: { date: Date; view: string }) => {
-    if (view !== "month") return "";
+const tileDisabled = ({ date, view }: { date: Date; view: string }) => {
+  if (view !== "month") return false;
 
-    const dateStr = format(date, "yyyy-MM-dd");
-    const today = new Date();
-    const todayStr = format(today, "yyyy-MM-dd");
+  const today = new Date();
+  const dateStr = format(date, "yyyy-MM-dd");
 
-    const blockUntil = new Date();
-    blockUntil.setDate(today.getDate() + 7);
-    const blockUntilStr = format(blockUntil, "yyyy-MM-dd");
+  if (date < today) return true;
 
-    if (
-      (dateStr >= todayStr && dateStr <= blockUntilStr) ||
-      isWeekend(date) ||
-      blockedDates.includes(dateStr)
-    ) {
-      return "blocked-date";
-    }
+  const sevenDaysLater = new Date();
+  sevenDaysLater.setDate(today.getDate() + 7);
+  if (date <= sevenDaysLater) return true;
 
-    return "";
-  };
+  const day = date.getDay();
+  const isWeekend = day === 0 || day === 6;
 
-  const tileDisabled = ({ date, view }: { date: Date; view: string }) => {
-    if (view !== "month") return false;
+  let slots = availabilityMap[dateStr];
 
-    const dateStr = format(date, "yyyy-MM-dd");
-    const today = new Date();
-    const todayStr = format(today, "yyyy-MM-dd");
+  // ✅ If no backend data, apply default rule
+  if (slots === undefined) {
+    slots = isWeekend ? 0 : 6;
+  }
 
-    const blockUntil = new Date();
-    blockUntil.setDate(today.getDate() + 7);
-    const blockUntilStr = format(blockUntil, "yyyy-MM-dd");
+  return slots <= 0;
+};
 
-    if (date < today) return true;
+const tileClassName = ({ date, view }: { date: Date; view: string }) => {
+  if (view !== "month") return "";
 
-    if (dateStr >= todayStr && dateStr <= blockUntilStr) return true;
+  const today = new Date();
+  const dateStr = format(date, "yyyy-MM-dd");
 
-    if (isWeekend(date)) return true;
+  const sevenDaysLater = new Date();
+  sevenDaysLater.setDate(today.getDate() + 7);
 
-    if (blockedDates.includes(dateStr)) return true;
+  if (date < today) return "blocked-date";
+  if (date <= sevenDaysLater) return "blocked-date";
 
-    return false;
-  };
+  const day = date.getDay();
+  const isWeekend = day === 0 || day === 6;
+
+  let slots = availabilityMap[dateStr];
+
+  // ✅ Apply default rule if undefined
+  if (slots === undefined) {
+    slots = isWeekend ? 0 : 6;
+  }
+
+  if (slots <= 0) return "blocked-date";
+
+  return "";
+};
 
   
   const handleNext = () => {
@@ -160,13 +215,17 @@ export default function Step1Calendar({ updateForm, onNext }: Props) {
         {selectedDate ? (
           <ul>
             {TIME_SLOTS.map((slot) => {
-              const normSlot = normalizeSlot(slot);
-
               const block = blockedTimes.find(
-                (b) => normalizeBackendTime(b.time) === normSlot
+                (b) => normalizeBackendTime(b.time) === normalizeSlot(slot)
               );
 
-              const totalSlots = block ? block.maxSlots : 6;
+              let totalSlots;
+              if (block) {
+                totalSlots = block.maxSlots;
+              } else {
+                const day = selectedDate?.getDay() ?? 1;
+                totalSlots = day === 0 || day === 6 ? 0 : 6;
+              }
 
               return (
                 <li

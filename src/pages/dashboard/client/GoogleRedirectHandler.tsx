@@ -1,14 +1,18 @@
 import { useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSnackbar } from "notistack";
 
 export default function GoogleRedirectHandler() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
     const google = searchParams.get("google");
     if (google === "success") {
-      alert("✅ Google Calendar connected successfully!");
+      enqueueSnackbar("Google Calendar connected successfully!", {
+        variant: "success",
+      });
 
       const user = JSON.parse(localStorage.getItem("user") || "{}");
       const userId = user.id;

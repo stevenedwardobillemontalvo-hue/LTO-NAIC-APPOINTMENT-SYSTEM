@@ -126,7 +126,7 @@ const AdminDashboard = () => {
         prev.map((a) => (a.id === id ? { ...a, status: "rejected" } : a))
       );
       if (selected?.id === id) setSelected({ ...selected, status: "rejected" });
-      enqueueSnackbar("Appointment rejected!", { variant: "warning" });
+      enqueueSnackbar("Appointment disapproved!", { variant: "warning" });
     } catch (err) {
       console.error(err);
       enqueueSnackbar("Failed to reject appointment", { variant: "error" });
@@ -167,6 +167,15 @@ const AdminDashboard = () => {
 
 
   const formatAppointmentTime = (time: string) => {
+  // const [startStr, endStr] = time.split("-");
+  // let start = Number(startStr);
+  // let end = Number(endStr);
+
+  // const formatHour = (hour: number) => {
+  //   if (hour === 12) return "12:00PM";
+  //   if (hour >= 1 && hour < 12) return `${hour}:00${hour >= 8 ? "AM" : "PM"}`; // fix later
+  //   return `${hour}:00AM`;
+  // };
 
   const slots: Record<string, string> = {
     "8-9": "8:00AM-9:00AM",
@@ -190,7 +199,7 @@ const AdminDashboard = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         <div className={boxClass}>
-          <span className="text-gray-500">Rejected</span>
+          <span className="text-gray-500">Disapproved</span>
           <span className="text-3xl font-bold">{counts.rejected}</span>
         </div>
         <div className={boxClass}>
@@ -221,9 +230,9 @@ const AdminDashboard = () => {
             <Legend />
 
             <Line dataKey="approved" stroke="#16a34a" strokeWidth={3} name="Approved" />
-            <Line dataKey="rejected" stroke="#dc2626" strokeWidth={3} name="Rejected" />
-            <Line dataKey="pending" stroke="#ca8a04" strokeWidth={3} name="Pending" />
-            <Line dataKey="cancelled" stroke="#6b7280" strokeWidth={3} name="Cancelled" />
+            <Line dataKey="rejected" stroke="#dc2626" strokeWidth={3} name="Disapproved" />
+            <Line dataKey="pending" stroke="#3b82f6" strokeWidth={3} name="Pending" />
+            <Line dataKey="cancelled" stroke="#f97316" strokeWidth={3} name="Cancelled" />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -272,11 +281,11 @@ const AdminDashboard = () => {
                         <span
                           className={`capitalize ${
                             a.status === "cancelled"
-                              ? "text-red-500"
+                              ? "text-orange-500"
                               : a.status === "pending"
-                              ? "text-yellow-600"
+                              ? "text-blue-500"
                               : a.status === "rejected"
-                              ? "text-red-500"
+                              ? "text-red-600"
                               : a.status === "approved"
                               ? "text-green-600"
                               : "text-gray-700"

@@ -23,10 +23,11 @@ export default function ClientDashboard() {
   });
 
   const [todaysAppointments, setTodaysAppointments] = useState<Appointment[]>([]);
-  const [_selected, setSelected] = useState<Appointment | null>(null);
+  const [selected, setSelected] = useState<Appointment | null>(null);
   const [loading, setLoading] = useState(true);
 
   const token = localStorage.getItem("token");
+
   useEffect(() => {
     if (!token) return;
     const fetchData = async () => {

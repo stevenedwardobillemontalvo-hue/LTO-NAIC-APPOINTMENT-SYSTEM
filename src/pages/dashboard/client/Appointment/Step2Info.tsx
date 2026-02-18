@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { clientInfo } from "../../../../services/client/appointment";
+import { useSnackbar } from "notistack";
 
 interface PersonalInfo {
   id: string;
@@ -44,6 +45,8 @@ export default function Step2Info({ data, updateForm, onNext, onBack }: Props) {
   );
   const [editingField, setEditingField] = useState<keyof PersonalInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const { enqueueSnackbar } = useSnackbar();
+
 
   useEffect(() => {
     const fetchInfo = async () => {
@@ -88,13 +91,44 @@ export default function Step2Info({ data, updateForm, onNext, onBack }: Props) {
       .map(([key]) => key.replace(/([A-Z])/g, " $1"));
 
     if (missingFields.length > 0) {
-      alert(`Please fill in the following fields before proceeding:\n- ${missingFields.join("\n- ")}`);
+      enqueueSnackbar(
+        `Please fill in: ${missingFields.join(", ")}`,
+        { variant: "warning" }
+      );
       return;
     }
 
     updateForm({ personalInfo });
     onNext();
   };
+
+  const formatBirthdateDisplay = (dateStr: string) => {
+  if (!dateStr) return "";
+
+  // if already mm/dd/yyyy, return it
+  if (dateStr.includes("/")) return dateStr;
+
+  // expects yyyy-mm-dd
+  const [yyyy, mm, dd] = dateStr.split("-");
+  if (!yyyy || !mm || !dd) return dateStr;
+
+  return `${mm}/${dd}/${yyyy}`;
+};
+
+const normalizeBirthdateValue = (dateStr: string) => {
+  if (!dateStr) return "";
+
+  if (dateStr.includes("-")) return dateStr;
+
+  if (dateStr.includes("/")) {
+    const [mm, dd, yyyy] = dateStr.split("/");
+    if (!mm || !dd || !yyyy) return "";
+    return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
+  }
+
+  return dateStr;
+};
+
 
 
   if (loading) return <p>Loading user info...</p>;
@@ -103,18 +137,30 @@ export default function Step2Info({ data, updateForm, onNext, onBack }: Props) {
     <div>
       <h2 className="text-lg font-semibold mb-4">Personal Information</h2>
       <div className="space-y-3">
-        {(Object.entries(personalInfo) as [keyof PersonalInfo, string][]).map(
-          ([key, value]) => (
+        {/* {(Object.entries(personalInfo) as [keyof PersonalInfo, string][]).map(
+          ([key, value]) => ( */}
+          {(Object.entries(personalInfo) as [keyof PersonalInfo, string][])
+            .filter(([key]) => key !== "id")
+            .map(([key, value]) => (
             <div
               key={key}
               className="flex items-center justify-between border p-2 rounded"
             >
               {editingField === key ? (
+              // <input
+              //   type="text"
+              //   name={key}
+              //   value={value}
+              //   onChange={handleChange}
+              //   onBlur={() => setEditingField(null)}
+              //   className="border p-1 rounded w-2/3"
+              // />
               <input
-                type="text"
+                type={key === "birthdate" ? "date" : "text"}
                 name={key}
-                value={value}
+                value={key === "birthdate" ? normalizeBirthdateValue(value) : value}
                 onChange={handleChange}
+                onBlur={() => setEditingField(null)}
                 className="border p-1 rounded w-2/3"
               />
             ) : (
@@ -128,7 +174,26 @@ export default function Step2Info({ data, updateForm, onNext, onBack }: Props) {
                         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                         .join(" ") + ":"}
                 </strong>{" "}
-                {key === "email" ? value.toLowerCase() : value || "N/A"}
+                {/* {key === "email" ? value.toLowerCase() : value || "N/A"} */}
+                {(() => {
+                  const trimmed = (value || "").trim();
+
+                  if (key === "middleName") return trimmed || "N/A";
+
+                  // if (["email", "birthdate", "ltmsNumber"].includes(key))
+                  //   return trimmed ? (key === "email" ? trimmed.toLowerCase() : trimmed) : "No data";
+                  if (["email", "birthdate", "ltmsNumber"].includes(key)) {
+                  if (!trimmed) return "No Data";
+
+                  if (key === "email") return trimmed.toLowerCase();
+
+                  if (key === "birthdate") return formatBirthdateDisplay(trimmed);
+
+                  return trimmed;
+                }
+                
+                  return trimmed || "No Data";
+                })()}
               </span>
 
             )}
@@ -150,6 +215,7 @@ export default function Step2Info({ data, updateForm, onNext, onBack }: Props) {
                 ((EDITABLE_FIELDS.includes(key) && !["email", "birthdate", "ltmsNumber"].includes(key)) 
                 || (["email", "birthdate", "ltmsNumber"].includes(key) && !value)) && (
                   <button
+                    onMouseDown={(e) => e.preventDefault()}
                     onClick={() => handleEditToggle(key)}
                     className={`px-3 py-1 rounded ${editingField === key ? "bg-green-500 text-white" : "bg-blue-500 text-white"}`}
                   >

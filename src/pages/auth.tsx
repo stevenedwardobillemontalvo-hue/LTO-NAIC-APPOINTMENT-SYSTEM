@@ -2,6 +2,7 @@ import Logo from "../components/header";
 import LoginPanel from "../components/auth/login";
 import YouTubeEmbed from "../components/info";
 import RegisterForm from "../components/auth/register";
+import Footer from "../components/Footer";
 
 import bgImage from "../assets/image.png";
 
@@ -11,12 +12,6 @@ export default function Home() {
     <div className="relative z-50 bg-gray-200 shadow-md">
     <div className="h-[25vh] md:h-[10vh] flex items-center px-6">
     <div className="w-full flex items-center justify-between gap-4">
-      
-      {/* <div className="w-1/2">
-        <div className="w-full max-w-2xl mx-auto overflow-visible">
-          <Logo />
-        </div>
-      </div> */}
 
       <div className="flex-shrink-0">
         <Logo />
@@ -27,14 +22,6 @@ export default function Home() {
           <LoginPanel />
         </div>
       </div>
-
-
-
-      {/* <div className="w-1/2 flex justify-end items-center">
-        <div className="w-full hidden md:block">
-          <LoginPanel />
-        </div>
-      </div> */}
 
     </div>
     </div>
@@ -68,6 +55,7 @@ export default function Home() {
           </div>
         </div>
       </div>
+       <Footer />
     </div>
   );
 }

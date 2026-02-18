@@ -157,7 +157,6 @@ const handleClear = () => {
     <div className="p-6">
       <h1 className="text-2xl font-semibold mb-4">All Clients</h1>
       <div className="bg-white p-4 rounded-lg shadow mb-4 flex flex-wrap gap-4 items-end">
-        {/* Search LTMS Number */}
         <div className="flex flex-col min-w-[200px]">
           <label className="text-xs text-gray-600 mb-1">Search LTMS Number</label>
           <input
@@ -168,8 +167,6 @@ const handleClear = () => {
             className="border rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         </div>
-
-        {/* Search Name */}
         <div className="flex flex-col min-w-[200px]">
           <label className="text-xs text-gray-600 mb-1">Search Name</label>
           <input
@@ -180,8 +177,6 @@ const handleClear = () => {
             className="border rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         </div>
-
-        {/* Search Email */}
         <div className="flex flex-col min-w-[200px]">
           <label className="text-xs text-gray-600 mb-1">Search Email</label>
           <input
@@ -193,7 +188,6 @@ const handleClear = () => {
           />
         </div>
 
-        {/* Buttons */}
         <div className="flex gap-2">
           <button
             onClick={handleFilter}
@@ -214,19 +208,19 @@ const handleClear = () => {
         <table className="w-full border-collapse">
           <thead className="bg-gray-100 text-left">
             <tr>
-              <th className="p-3 border-b cursor-pointer" onClick={() => handleSort("ltmsNumber")}>
+              <th className="p-3 border-b border-r cursor-pointer w-60" onClick={() => handleSort("ltmsNumber")}>
                 LTMS Number {getSortIcon("ltmsNumber")}
               </th>
 
-              <th className="p-3 border-b cursor-pointer" onClick={() => handleSort("name")}>
+              <th className="p-3 border-b border-r cursor-pointer" onClick={() => handleSort("name")}>
                 Name {getSortIcon("name")}
               </th>
 
-              <th className="p-3 border-b cursor-pointer" onClick={() => handleSort("email")}>
+              <th className="p-3 border-b border-r cursor-pointer w-140" onClick={() => handleSort("email")}>
                 Email {getSortIcon("email")}
               </th>
 
-              <th className="p-3 border-b cursor-pointer" onClick={() => handleSort("birthdate")}>
+              <th className="p-3 border-b border-r cursor-pointer w-60" onClick={() => handleSort("birthdate")}>
                 Birthdate {getSortIcon("birthdate")}
               </th>
             </tr>
@@ -236,8 +230,8 @@ const handleClear = () => {
             {sortedClients.length > 0 ? (
               sortedClients.map((c) => (
                 <tr key={c.id} className="hover:bg-gray-50">
-                  <td className="p-3 border-b flex items-center justify-between">
-                    {c.ltmsNumber || "Not set"}
+                  <td className="p-3 border-b border-r flex items-center justify-between">
+                    {c.ltmsNumber || "No Data"}
                     {c.ltmsNumber && (
                       <FiTrash2
                         className="ml-2 cursor-pointer text-red-500"
@@ -245,11 +239,11 @@ const handleClear = () => {
                       />
                     )}
                   </td>
-                  <td className="p-3 border-b">{c.name}</td>
-                  <td className="p-3 border-b">{c.email}</td>
+                  <td className="p-3 border-b border-r">{c.name}</td>
+                  <td className="p-3 border-b border-r">{c.email}</td>
 
                   <td className="p-3 border-b flex items-center justify-between">
-                    {c.birthdate || "Not set"}
+                    {c.birthdate || "No Data"}
                     {c.birthdate && (
                       <FiTrash2
                         className="ml-2 cursor-pointer text-red-500"

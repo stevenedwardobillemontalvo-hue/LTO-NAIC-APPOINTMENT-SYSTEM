@@ -32,7 +32,7 @@ const VerifyEmail = () => {
   return (
     <div style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>
       <div style={{ textAlign: "center" }}>
-        {status === "loading" && <h2>🔄 Verifying your email...</h2>}
+        {status === "loading" && <h2> Verifying your email...</h2>}
         {status === "success" && (
           <>
             <h2>Email Verified</h2>

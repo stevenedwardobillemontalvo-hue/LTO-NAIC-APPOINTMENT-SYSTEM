@@ -1,0 +1,31 @@
+.react-calendar {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.react-calendar__viewContainer {
+  height: 50% !important;
+}
+
+.react-calendar__month-view {
+  height: 50% !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.react-calendar__month-view > div {
+  flex: 1;
+}
+
+.react-calendar__month-view__weekdays {
+  font-size: 0.95rem;
+}
+
+.react-calendar__month-view__days {
+  flex: 1;
+}
+
+.react-calendar__tile {
+  padding: 14px 0 !important; 
+  font-size: 1rem;
+}
