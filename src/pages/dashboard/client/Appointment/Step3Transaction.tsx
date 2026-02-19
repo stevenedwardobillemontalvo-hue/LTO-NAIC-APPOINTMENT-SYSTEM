@@ -83,7 +83,7 @@ export default function Step3Transaction({ data, updateForm, onBack }: Props) {
         token: "",
       });
 
-      window.location.href = `http://localhost:5173/dashboard/${finalId}/appointment`;
+      window.location.href = `https://lto-naic-appointment-system.vercel.app/dashboard/${finalId}/appointment`;
 
   } catch (err: any) {
     console.error(err);

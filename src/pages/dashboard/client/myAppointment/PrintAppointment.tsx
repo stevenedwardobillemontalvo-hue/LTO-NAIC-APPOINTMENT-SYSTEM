@@ -31,7 +31,7 @@ const Print = forwardRef<HTMLDivElement, PrintProps>(({ appointment }, ref) => {
   const client = appointment.client || {};
   const fullName = `${client.firstName || ""} ${client.middleName || ""} ${client.lastName || ""}`.replace(/\s+/g, " ").trim();
 
-  const confirmationURL = `http://localhost:5173/confirmation/${appointment.id}`;
+  const confirmationURL = `, "https://lto-naic-appointment-system.vercel.app"/confirmation/${appointment.id}`;
 
   const formatAppointmentTime = (time: string) => {
 

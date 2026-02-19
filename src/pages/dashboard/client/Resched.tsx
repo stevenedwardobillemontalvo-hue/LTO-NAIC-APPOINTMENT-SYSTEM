@@ -159,7 +159,7 @@ export default function RescheduleCalendar({ appointmentId, appointmentDate }: P
       enqueueSnackbar("Appointment rescheduled successfully!", { variant: "success" });
 
       if (typeof window !== "undefined") {
-      window.location.href = `http://localhost:5173/dashboard/${userId}/my-appointments`;
+      window.location.href = `https://lto-naic-appointment-system.vercel.app/dashboard/${userId}/my-appointments`;
     }
     } catch (err) {
       console.error(err);
