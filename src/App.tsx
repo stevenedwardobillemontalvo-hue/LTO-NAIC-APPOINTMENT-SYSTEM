@@ -55,6 +55,7 @@ export default function App() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/confirmation" element={<Confirmation />} />
+      <Route path="/confirmation/:id" element={<ConfirmationPage />} />
       <Route path="/dashboard/:id"
         element={
           <ProtectedRoute>
@@ -77,8 +78,6 @@ export default function App() {
 
       </Route>
 
-
-      <Route path="/confirmation/:id" element={<ConfirmationPage />} />
       <Route path="/appointments" element={<GoogleRedirectHandler />} />
     </Routes>
   );
